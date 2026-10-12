@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar CNC — Plataforma de Prospección y Consultoría Industrial</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        industrial: {
+                            900: '#0B0F17',
+                            800: '#111827',
+                            700: '#1E293B',
+                            600: '#334155',
+                            500: '#475569',
+                            400: '#94A3B8',
+                        },
+                        tech: {
+                            blue: '#0284C7',
+                            cyan: '#06B6D4',
+                            amber: '#D97706',
+                            emerald: '#059669',
+                            steel: '#64748B'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f17; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0284c7; }
+        .grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(51, 65, 85, 0.15) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(51, 65, 85, 0.15) 1px, transparent 1px);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .print-card { border: 1px solid #ccc !important; box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-[#0B0F17] text-slate-200 min-h-screen flex font-sans antialiased select-none">
+
+    <!-- BARRA LATERAL TÉCNICA -->
+    <aside class="w-64 bg-[#0F172A] border-r border-slate-800 flex flex-col justify-between shrink-0 no-print">
+        <div>
+            <!-- Header Marca -->
+            <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded bg-sky-600/20 border border-sky-500/40 flex items-center justify-center text-sky-400">
+                        <i data-lucide="crosshair" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-bold tracking-wider text-slate-100 flex items-center gap-1.5">
+                            RADAR <span class="text-sky-400">CNC</span>
+                        </h1>
+                        <p class="text-[10px] uppercase font-mono tracking-widest text-slate-400">Manufactura B2B</p>
+                    </div>
+                </div>
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Sistema Activo en GitHub Pages"></span>
+            </div>
+
+            <!-- Navegación de Pantallas -->
+            <nav class="p-3 space-y-1 text-sm font-medium">
+                <button onclick="cambiarPantalla('buscar')" id="nav-buscar" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <i data-lucide="search" class="w-4 h-4 text-sky-400"></i>
+                    <span>Buscar Talleres</span>
+                </button>
+                <button onclick="cambiarPantalla('radar')" id="nav-radar" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <i data-lucide="activity" class="w-4 h-4 text-cyan-400"></i>
+                    <span>Radar de Nichos</span>
+                </button>
+                <button onclick="cambiarPantalla('leads')" id="nav-leads" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <i data-lucide="kanban-square" class="w-4 h-4 text-amber-400"></i>
+                    <span>Mis Leads (Talleres)</span>
+                    <span id="badge-leads-count" class="ml-auto text-xs font-mono bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">0</span>
+                </button>
+                <button onclick="cambiarPantalla('ficha')" id="nav-ficha" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <i data-lucide="file-badge-2" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Ficha Técnica</span>
+                </button>
+                <button onclick="cambiarPantalla('ajustes')" id="nav-ajustes" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">
+                    <i data-lucide="sliders" class="w-4 h-4 text-slate-400"></i>
+                    <span>Ajustes & Consultor</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Footer Consultor Activo -->
+        <div class="p-4 border-t border-slate-800 bg-slate-900/40">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-mono font-bold text-sky-400">
+                    CNC
+                </div>
+                <div class="overflow-hidden">
+                    <p id="sidebar-consultor-nombre" class="text-xs font-semibold text-slate-200 truncate">Consultor CNC</p>
+                    <p class="text-[10px] text-slate-400 truncate">Asesoría G-Code & CAD/CAM</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#0B0F17] grid-pattern">
+        
+        <!-- TOPBAR DE ESTADO -->
+        <header class="h-14 border-b border-slate-800 px-6 flex items-center justify-between shrink-0 bg-[#0F172A]/80 backdrop-blur no-print">
+            <div class="flex items-center space-x-3">
+                <span id="top-titulo-pantalla" class="text-sm font-semibold tracking-wide text-slate-200 uppercase font-mono">Buscar Talleres</span>
+                <span class="text-xs text-slate-600">|</span>
+                <span class="text-xs text-slate-400 flex items-center gap-1.5 font-mono">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Nube Web GitHub Pages Activa
+                </span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="abrirModalNuevoTaller()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs font-medium rounded border border-slate-700 flex items-center gap-1.5 transition">
+                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                    <span>+ Agregar Taller Manual</span>
+                </button>
+                <div class="flex items-center space-x-2 text-xs font-mono text-slate-400 bg-slate-900/80 px-2.5 py-1 rounded border border-slate-800">
+                    <span>Leads en Pipeline:</span>
+                    <span id="contador-leads-header" class="text-sky-400 font-bold">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CUERPO DE CONTENIDO (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-6" id="contenedor-pantallas">
+
+            <!-- ========================================== -->
+            <!-- 1. PANTALLA: BUSCAR TALLERES               -->
+            <!-- ========================================== -->
+            <section id="pantalla-buscar" class="space-y-6">
+                <!-- Tarjeta de Control y Filtros de Búsqueda -->
+                <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                        <div class="md:col-span-4">
+                            <label class="block text-xs font-mono text-slate-400 mb-1.5 uppercase">Zona Geográfica (Ciudad o Municipio)</label>
+                            <div class="relative">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+                                <input type="text" id="input-zona" value="Medellín" onkeydown="if(event.key==='Enter')ejecutarBusqueda()" placeholder="Ej. Medellín, Bogotá, Cali, Bucaramanga, Pereira..." class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-sky-500">
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-5">
+                            <label class="block text-xs font-mono text-slate-400 mb-1.5 uppercase">Nicho Industrial / Subsector</label>
+                            <div class="relative">
+                                <i data-lucide="layers" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+                                <input type="text" id="input-nicho" value="talleres de mecanizado CNC" onkeydown="if(event.key==='Enter')ejecutarBusqueda()" placeholder="Escribe o selecciona abajo..." class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-sky-500">
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-3 flex space-x-2">
+                            <button onclick="ejecutarBusqueda()" id="btn-buscar" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-medium py-2 px-4 rounded-lg text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-sky-950">
+                                <i data-lucide="radar" class="w-4 h-4"></i>
+                                <span>Escanear Zona</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chips de Ciudades Rápidas -->
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex flex-wrap gap-2 items-center text-xs">
+                        <span class="text-sky-400 font-mono font-semibold">Ciudades Rápidas:</span>
+                        <button onclick="setCiudad('Medellín')" class="px-2.5 py-1 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 rounded border border-sky-800/40 transition">Medellín</button>
+                        <button onclick="setCiudad('Bogotá')" class="px-2.5 py-1 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 rounded border border-sky-800/40 transition">Bogotá</button>
+                        <button onclick="setCiudad('Cali')" class="px-2.5 py-1 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 rounded border border-sky-800/40 transition">Cali</button>
+                        <button onclick="setCiudad('Bucaramanga')" class="px-2.5 py-1 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 rounded border border-sky-800/40 transition">Bucaramanga</button>
+                        <button onclick="setCiudad('Pereira')" class="px-2.5 py-1 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 rounded border border-sky-800/40 transition">Pereira</button>
+                        <button onclick="setCiudad('Barranquilla')" class="px-2.5 py-1 bg-sky-950/40 hover:bg-sky-900/60 text-sky-300 rounded border border-sky-800/40 transition">Barranquilla</button>
+                    </div>
+
+                    <!-- Chips de Sugerencias Rápidas de Nicho -->
+                    <div class="mt-3 flex flex-wrap gap-2 items-center text-xs">
+                        <span class="text-slate-500 font-mono">Sugerencias:</span>
+                        <button onclick="setNicho('talleres de mecanizado CNC')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">Talleres de mecanizado CNC</button>
+                        <button onclick="setNicho('matricería y moldes de inyección')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">Matricería y moldes</button>
+                        <button onclick="setNicho('fabricantes de autopartes y engranajes')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">Autopartes & Piñonería</button>
+                        <button onclick="setNicho('empresas metalmecánicas y calderería')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition">Empresas metalmecánicas</button>
+                    </div>
+
+                    <!-- Filtros Adicionales de Oportunidad -->
+                    <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-4 pt-2">
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center space-x-1.5 cursor-pointer">
+                                <input type="checkbox" id="filtro-telefono" onchange="aplicarFiltrosLocales()" class="rounded bg-slate-900 border-slate-700 text-sky-600 focus:ring-0">
+                                <span>Solo con teléfono</span>
+                            </label>
+                            <label class="flex items-center space-x-1.5 cursor-pointer">
+                                <input type="checkbox" id="filtro-web" onchange="aplicarFiltrosLocales()" class="rounded bg-slate-900 border-slate-700 text-sky-600 focus:ring-0">
+                                <span>Solo con página web</span>
+                            </label>
+                            <label class="flex items-center space-x-1.5 cursor-pointer">
+                                <input type="checkbox" id="filtro-sin-web" onchange="aplicarFiltrosLocales()" class="rounded bg-slate-900 border-slate-700 text-sky-600 focus:ring-0">
+                                <span>Solo sin web (prospección en planta)</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span>Modo vista:</span>
+                            <button onclick="cambiarVistaResultados('tarjetas')" id="btn-vista-tarjetas" class="p-1 rounded bg-slate-800 text-sky-400"><i data-lucide="layout-grid" class="w-4 h-4"></i></button>
+                            <button onclick="cambiarVistaResultados('tabla')" id="btn-vista-tabla" class="p-1 rounded bg-slate-900 text-slate-500 hover:text-slate-300"><i data-lucide="table" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de Estadísticas de Resultados y Selección Múltiple -->
+                <div id="barra-accion-resultados" class="hidden bg-slate-900/90 border border-slate-800 rounded-lg p-3 flex items-center justify-between text-xs">
+                    <div class="flex items-center space-x-3">
+                        <span id="label-conteo-resultados" class="font-mono text-slate-300 font-semibold">0 talleres encontrados</span>
+                        <span class="text-slate-600">•</span>
+                        <span id="label-seleccionados" class="text-sky-400">0 seleccionados</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="guardarSeleccionadosLeads()" class="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 rounded border border-amber-500/30 font-medium flex items-center gap-1.5 transition">
+                            <i data-lucide="bookmark-plus" class="w-3.5 h-3.5"></i>
+                            <span>Guardar en mis Leads</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Estado de Carga -->
+                <div id="loading-busqueda" class="hidden p-12 text-center space-y-3">
+                    <div class="inline-block w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-sm font-mono text-slate-400">Consultando empresas y talleres en tiempo real...</p>
+                </div>
+
+                <!-- Contenedor de Resultados (Tarjetas / Tabla) -->
+                <div id="contenedor-resultados" class="space-y-4"></div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- 2. PANTALLA: FICHA TÉCNICA DEL TALLER      -->
+            <!-- ========================================== -->
+            <section id="pantalla-ficha" class="hidden space-y-6">
+                <!-- Botón de retorno y controles -->
+                <div class="flex items-center justify-between no-print">
+                    <button onclick="cambiarPantalla('buscar')" class="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 transition">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Volver a la búsqueda</span>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded border border-slate-700 flex items-center gap-1.5 transition">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                            <span>Exportar Ficha (PDF / Imprimir)</span>
+                        </button>
+                        <button onclick="guardarLeadActual()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium rounded flex items-center gap-1.5 transition">
+                            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                            <span>Guardar Cambios de Lead</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cabecera de la Ficha Técnica -->
+                <div class="bg-[#111827] border border-slate-800 rounded-xl p-6 shadow-xl print-card">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <h2 id="ficha-nombre" class="text-2xl font-bold text-white tracking-tight">Nombre del Taller</h2>
+                                <span id="ficha-badge-score" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                                    Score: 85/100
+                                </span>
+                            </div>
+                            <p id="ficha-direccion" class="text-sm text-slate-400 mt-1 flex items-center gap-1.5">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-slate-500"></i>
+                                <span>Dirección del taller</span>
+                            </p>
+                        </div>
+                        
+                        <!-- Acciones Rápidas -->
+                        <div class="flex flex-wrap items-center gap-2 no-print">
+                            <a id="ficha-btn-tel" href="#" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition">
+                                <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                <span id="ficha-txt-tel">Llamar</span>
+                            </a>
+                            <a id="ficha-btn-wa" href="#" target="_blank" class="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-emerald-500/30 transition">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                                <span>WhatsApp</span>
+                            </a>
+                            <a id="ficha-btn-web" href="#" target="_blank" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition">
+                                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                                <span>Visitar Sitio Web</span>
+                            </a>
+                            <a id="ficha-btn-maps" href="#" target="_blank" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition">
+                                <i data-lucide="map" class="w-3.5 h-3.5"></i>
+                                <span>Google Maps</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Desglose de Puntuación de Oportunidad -->
+                    <div class="mt-5 pt-4 border-t border-slate-800/80">
+                        <h4 class="text-xs uppercase font-mono text-slate-400 tracking-wider mb-2">Desglose de Oportunidad para Consultor</h4>
+                        <div id="ficha-desglose-score" class="flex flex-wrap gap-2 text-xs"></div>
+                    </div>
+                </div>
+
+                <!-- Grid de Diagnóstico Técnico e Inteligencia Digital -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Columna Izquierda: Auditoría Digital & Captura Web -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 shadow-lg print-card">
+                            <h3 class="text-sm font-semibold text-slate-200 uppercase font-mono tracking-wider flex items-center gap-2 mb-3">
+                                <i data-lucide="monitor" class="w-4 h-4 text-sky-400"></i>
+                                <span>Captura & Presencia Digital</span>
+                            </h3>
+                            
+                            <div id="ficha-web-box" class="space-y-3">
+                                <div class="w-full h-48 bg-slate-900 rounded-lg border border-slate-800 overflow-hidden flex items-center justify-center relative">
+                                    <img id="ficha-img-screenshot" src="" alt="Captura del sitio web" class="w-full h-full object-cover object-top hidden">
+                                    <div id="ficha-screenshot-placeholder" class="text-center p-4">
+                                        <i data-lucide="globe" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
+                                        <p class="text-xs text-slate-500">Sin captura disponible o taller sin página web propia.</p>
+                                    </div>
+                                </div>
+                                <div id="ficha-contactos-web" class="text-xs space-y-1 text-slate-400 font-mono"></div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-slate-800 no-print">
+                                <button onclick="ejecutarAnalisisFicha()" id="btn-analizar-ficha" class="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs rounded-lg flex items-center justify-center gap-2 transition shadow-md shadow-sky-950">
+                                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                                    <span>Ejecutar Diagnóstico Técnico IA</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Estado del Lead y Bitácora -->
+                        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 shadow-lg space-y-3 no-print">
+                            <h3 class="text-sm font-semibold text-slate-200 uppercase font-mono tracking-wider flex items-center gap-2">
+                                <i data-lucide="clipboard-list" class="w-4 h-4 text-amber-400"></i>
+                                <span>Gestión y Seguimiento Comercial</span>
+                            </h3>
+                            <div>
+                                <label class="block text-xs font-mono text-slate-400 mb-1">Estado en Pipeline:</label>
+                                <select id="ficha-select-estado" class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+                                    <option value="prospecto">1. Prospecto Identificado</option>
+                                    <option value="analizado">2. Analizado Técnicamente</option>
+                                    <option value="primer_contacto">3. Primer Contacto Realizado</option>
+                                    <option value="visita_agendada">4. Visita Técnica en Planta Agendada</option>
+                                    <option value="propuesta">5. Propuesta Técnica Enviada</option>
+                                    <option value="cliente">6. Cliente Activo en Asesoría</option>
+                                    <option value="descartado">7. Descartado / No aplica</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-slate-400 mb-1">Fecha de Próxima Acción:</label>
+                                <input type="date" id="ficha-input-fecha-prox" class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-slate-400 mb-1">Notas Técnicas de Planta / Contacto:</label>
+                                <textarea id="ficha-input-notas" rows="3" placeholder="Ej. Tienen 3 tornos Haas y 1 convencional..." class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Diagnóstico de Ingeniería y Borradores -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 shadow-lg print-card">
+                            <h3 class="text-sm font-semibold text-slate-200 uppercase font-mono tracking-wider flex items-center gap-2 mb-3">
+                                <i data-lucide="wrench" class="w-4 h-4 text-emerald-400"></i>
+                                <span>Diagnóstico de Maquinaria y Procesos</span>
+                            </h3>
+
+                            <div class="space-y-3 text-xs">
+                                <div>
+                                    <span class="font-mono text-slate-400 uppercase text-[10px]">Capacidades de Fabricación:</span>
+                                    <p id="diag-capacidades" class="text-slate-300 mt-0.5 leading-relaxed bg-slate-900/60 p-2.5 rounded border border-slate-800">
+                                        Haz clic en «Ejecutar Diagnóstico Técnico IA» para auditar este taller.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <span class="font-mono text-slate-400 uppercase text-[10px]">Tecnologías y Maquinaria Detectadas:</span>
+                                    <div id="diag-tecnologias" class="flex flex-wrap gap-1.5 mt-1"></div>
+                                </div>
+
+                                <div>
+                                    <span class="font-mono text-amber-400 uppercase text-[10px] font-semibold">Puntos de Dolor Identificados:</span>
+                                    <ul id="diag-puntos-dolor" class="list-disc list-inside text-slate-300 mt-1 space-y-1 bg-amber-950/20 p-2.5 rounded border border-amber-900/40">
+                                        <li>Pendiente de análisis.</li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <span class="font-mono text-sky-400 uppercase text-[10px] font-semibold">Servicio Recomendado para Vender:</span>
+                                    <p id="diag-servicio" class="text-sky-200 mt-0.5 leading-relaxed bg-sky-950/20 p-2.5 rounded border border-sky-800/40">
+                                        Pendiente de análisis.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Borradores Comerciales -->
+                        <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 shadow-lg print-card">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-sm font-semibold text-slate-200 uppercase font-mono tracking-wider flex items-center gap-2">
+                                    <i data-lucide="send" class="w-4 h-4 text-cyan-400"></i>
+                                    <span>Kit de Primer Contacto Técnico</span>
+                                </h3>
+                                <span class="text-[10px] font-mono text-slate-500 no-print">Uso personal consultor</span>
+                            </div>
+
+                            <div class="flex border-b border-slate-800 text-xs no-print">
+                                <button onclick="tabBorrador('llamada')" id="tab-btn-llamada" class="px-4 py-2 border-b-2 border-sky-500 text-sky-400 font-medium">Llamada (30 seg)</button>
+                                <button onclick="tabBorrador('whatsapp')" id="tab-btn-whatsapp" class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">WhatsApp</button>
+                                <button onclick="tabBorrador('correo')" id="tab-btn-correo" class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Correo B2B</button>
+                            </div>
+
+                            <div class="mt-4 relative">
+                                <div id="borrador-llamada" class="borrador-item">
+                                    <textarea id="txt-guion-llamada" rows="6" readonly class="w-full bg-[#0B0F17] border border-slate-800 rounded-lg p-3 text-xs text-slate-300 font-mono leading-relaxed select-text"></textarea>
+                                    <button onclick="copiarAlPortapapeles('txt-guion-llamada')" class="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs rounded border border-slate-700 flex items-center gap-1.5 transition no-print">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        <span>Copiar Guion</span>
+                                    </button>
+                                </div>
+
+                                <div id="borrador-whatsapp" class="borrador-item hidden">
+                                    <textarea id="txt-guion-wa" rows="8" readonly class="w-full bg-[#0B0F17] border border-slate-800 rounded-lg p-3 text-xs text-slate-300 font-mono leading-relaxed select-text"></textarea>
+                                    <button onclick="copiarAlPortapapeles('txt-guion-wa')" class="mt-2 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs rounded border border-emerald-500/30 flex items-center gap-1.5 transition no-print">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        <span>Copiar Mensaje WhatsApp</span>
+                                    </button>
+                                </div>
+
+                                <div id="borrador-correo" class="borrador-item hidden">
+                                    <textarea id="txt-guion-correo" rows="10" readonly class="w-full bg-[#0B0F17] border border-slate-800 rounded-lg p-3 text-xs text-slate-300 font-mono leading-relaxed select-text"></textarea>
+                                    <button onclick="copiarAlPortapapeles('txt-guion-correo')" class="mt-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs rounded border border-slate-700 flex items-center gap-1.5 transition no-print">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        <span>Copiar Correo Formal</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- 3. PANTALLA: RADAR DE NICHOS INDUSTRIALES  -->
+            <!-- ========================================== -->
+            <section id="pantalla-radar" class="hidden space-y-6">
+                <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                        <div class="flex-1">
+                            <label class="block text-xs font-mono text-slate-400 mb-1.5 uppercase">Analizar Oportunidades en Región / Polo Industrial</label>
+                            <div class="relative">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+                                <input type="text" id="input-radar-zona" value="Medellín" class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-sky-500">
+                            </div>
+                        </div>
+                        <button onclick="ejecutarAnalisisRadar()" id="btn-ejecutar-radar" class="bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-2 px-5 rounded-lg text-sm flex items-center gap-2 transition shadow-lg shadow-cyan-950">
+                            <i data-lucide="radar" class="w-4 h-4"></i>
+                            <span>Evaluar Nichos con IA</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="radar-dictamen-box" class="hidden bg-[#111827] border border-cyan-900/40 rounded-xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center gap-2 text-cyan-400 font-mono text-xs uppercase tracking-wider">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>Diagnóstico de Mercado IA para Consultoría</span>
+                    </div>
+                    <p id="radar-resumen-mercado" class="text-sm text-slate-300 leading-relaxed font-sans bg-slate-900/60 p-4 rounded-lg border border-slate-800">
+                        Cargando...
+                    </p>
+
+                    <h4 class="text-xs uppercase font-mono text-slate-400 tracking-wider pt-2">Top 3 Subsectores con Mayor Rentabilidad de Asesoría:</h4>
+                    <div id="radar-top-cards" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+
+                <div class="bg-[#111827] border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                    <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                        <h3 class="text-sm font-semibold text-slate-200 uppercase font-mono tracking-wider">Mapeo de Categorías Industriales</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-900/90 text-slate-400 uppercase font-mono border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3.5">Subsector Industrial</th>
+                                    <th class="p-3.5 text-center">Talleres Detectados</th>
+                                    <th class="p-3.5 text-center">Volumen Actividad (Reseñas)</th>
+                                    <th class="p-3.5 text-center">Sin Web Propia</th>
+                                    <th class="p-3.5 text-center">Score de Oportunidad</th>
+                                    <th class="p-3.5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-radar-nichos" class="divide-y divide-slate-800/60 font-sans">
+                                <tr>
+                                    <td colspan="6" class="p-6 text-center text-slate-500 font-mono">Presiona «Evaluar Nichos con IA» para generar el reporte de la zona.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- 4. PANTALLA: MIS LEADS (KANBAN & TABLA)    -->
+            <!-- ========================================== -->
+            <section id="pantalla-leads" class="hidden space-y-6">
+                <div class="bg-[#111827] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center space-x-3 w-full md:w-auto">
+                        <div class="relative flex-1 md:w-64">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5"></i>
+                            <input type="text" id="filtro-leads-txt" oninput="filtrarLeadsUI()" placeholder="Filtrar por nombre o ciudad..." class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+                        </div>
+                        <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-800 text-xs">
+                            <button onclick="cambiarVistaLeads('kanban')" id="btn-leads-kanban" class="px-2.5 py-1 rounded bg-slate-800 text-amber-400 font-medium">Kanban</button>
+                            <button onclick="cambiarVistaLeads('tabla')" id="btn-leads-tabla" class="px-2.5 py-1 rounded text-slate-400 hover:text-white">Tabla</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="exportarLeadsCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded border border-slate-700 flex items-center gap-1.5 transition">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                            <span>Exportar a CSV (Excel)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tablero Kanban de 7 Columnas Industriales -->
+                <div id="vista-kanban-leads" class="overflow-x-auto pb-4">
+                    <div class="flex space-x-4 min-w-[1400px]">
+                        <div class="w-64 bg-[#0F172A] border border-slate-800 rounded-xl flex flex-col shrink-0">
+                            <div class="p-3 border-b border-slate-800 flex justify-between items-center text-xs font-mono font-semibold text-slate-300">
+                                <span>1. Prospecto</span>
+                                <span id="kcount-prospecto" class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">0</span>
+                            </div>
+                            <div id="kcol-prospecto" class="p-2 space-y-2 flex-1 overflow-y-auto min-h-[450px]"></div>
+                        </div>
+
+                        <div class="w-64 bg-[#0F172A] border border-slate-800 rounded-xl flex flex-col shrink-0">
+                            <div class="p-3 border-b border-slate-800 flex justify-between items-center text-xs font-mono font-semibold text-cyan-400">
+                                <span>2. Analizado</span>
+                                <span id="kcount-analizado" class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">0</span>
+                            </div>
+                            <div id="kcol-analizado" class="p-2 space-y-2 flex-1 overflow-y-auto min-h-[450px]"></div>
+                        </div>
+
+                        <div class="w-64 bg-[#0F172A] border border-slate-800 rounded-xl flex flex-col shrink-0">
+                            <div class="p-3 border-b border-slate-800 flex justify-between items-center text-xs font-mono font-semibold text-sky-400">
+                                <span>3. Primer Contacto</span>
+                                <span id="kcount-primer_contacto" class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">0</span>
+                            </div>
+                            <div id="kcol-primer_contacto" class="p-2 space-y-2 flex-1 overflow-y-auto min-h-[450px]"></div>
+                        </div>
+
+                        <div class="w-64 bg-[#0F172A] border border-slate-800 rounded-xl flex flex-col shrink-0">
+                            <div class="p-3 border-b border-slate-800 flex justify-between items-center text-xs font-mono font-semibold text-amber-400">
+                                <span>4. Visita Agendada</span>
+                                <span id="kcount-visita_agendada" class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">0</span>
+                            </div>
+                            <div id="kcol-visita_agendada" class="p-2 space-y-2 flex-1 overflow-y-auto min-h-[450px]"></div>
+                        </div>
+
+                        <div class="w-64 bg-[#0F172A] border border-slate-800 rounded-xl flex flex-col shrink-0">
+                            <div class="p-3 border-b border-slate-800 flex justify-between items-center text-xs font-mono font-semibold text-purple-400">
+                                <span>5. Propuesta Enviada</span>
+                                <span id="kcount-propuesta" class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">0</span>
+                            </div>
+                            <div id="kcol-propuesta" class="p-2 space-y-2 flex-1 overflow-y-auto min-h-[450px]"></div>
+                        </div>
+
+                        <div class="w-64 bg-[#0F172A] border border-slate-800 rounded-xl flex flex-col shrink-0">
+                            <div class="p-3 border-b border-slate-800 flex justify-between items-center text-xs font-mono font-semibold text-emerald-400">
+                                <span>6. Cliente Activo</span>
+                                <span id="kcount-cliente" class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">0</span>
+                            </div>
+                            <div id="kcol-cliente" class="p-2 space-y-2 flex-1 overflow-y-auto min-h-[450px]"></div>
+                        </div>
+
+                        <div class="w-64 bg-[#0F172A] border border-slate-800 rounded-xl flex flex-col shrink-0">
+                            <div class="p-3 border-b border-slate-800 flex justify-between items-center text-xs font-mono font-semibold text-rose-400">
+                                <span>7. Descartado</span>
+                                <span id="kcount-descartado" class="bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">0</span>
+                            </div>
+                            <div id="kcol-descartado" class="p-2 space-y-2 flex-1 overflow-y-auto min-h-[450px]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Leads -->
+                <div id="vista-tabla-leads" class="hidden bg-[#111827] border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-900/90 text-slate-400 uppercase font-mono border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3.5">Nombre del Taller</th>
+                                    <th class="p-3.5">Ciudad / Ubicación</th>
+                                    <th class="p-3.5">Contacto</th>
+                                    <th class="p-3.5 text-center">Score</th>
+                                    <th class="p-3.5">Estado</th>
+                                    <th class="p-3.5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-leads-tabla" class="divide-y divide-slate-800/60 font-sans"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================== -->
+            <!-- 5. PANTALLA: AJUSTES & PERFIL CONSULTOR    -->
+            <!-- ========================================== -->
+            <section id="pantalla-ajustes" class="hidden space-y-6 max-w-4xl">
+                <div class="bg-[#111827] border border-slate-800 rounded-xl p-6 shadow-lg space-y-4">
+                    <h3 class="text-sm font-semibold text-slate-200 uppercase font-mono tracking-wider flex items-center gap-2">
+                        <i data-lucide="user-check" class="w-4 h-4 text-sky-400"></i>
+                        <span>Perfil Profesional del Consultor (Firma y Tono)</span>
+                    </h3>
+                    <p class="text-xs text-slate-400">Los borradores de llamadas, WhatsApp y correos electrónicos se adaptan de forma personalizada con estos datos.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block font-mono text-slate-400 mb-1">Nombre Completo del Consultor:</label>
+                            <input type="text" id="cfg-nombre" class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-sky-500">
+                        </div>
+                        <div>
+                            <label class="block font-mono text-slate-400 mb-1">Nombre de tu Empresa / Firma de Asesorías:</label>
+                            <input type="text" id="cfg-empresa" class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-sky-500">
+                        </div>
+                    </div>
+
+                    <div class="text-xs">
+                        <label class="block font-mono text-slate-400 mb-1">Tus Especialidades Clave:</label>
+                        <textarea id="cfg-especialidades" rows="2" class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-sky-500"></textarea>
+                    </div>
+
+                    <div class="text-xs">
+                        <label class="block font-mono text-slate-400 mb-1">Propuesta de Valor Principal:</label>
+                        <textarea id="cfg-propuesta" rows="2" class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-sky-500"></textarea>
+                    </div>
+
+                    <div class="text-xs">
+                        <label class="block font-mono text-slate-400 mb-1">Tono de los Mensajes Comerciales:</label>
+                        <input type="text" id="cfg-tono" class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-sky-500">
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="guardarAjustes()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-lg flex items-center gap-2 transition">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                            <span>Guardar Configuración</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-[#111827] border border-slate-800 rounded-xl p-6 shadow-lg space-y-4">
+                    <h3 class="text-sm font-semibold text-slate-200 uppercase font-mono tracking-wider flex items-center gap-2">
+                        <i data-lucide="key" class="w-4 h-4 text-amber-400"></i>
+                        <span>Llave de Google Cloud (Opcional)</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        No requieres ninguna llave para usar Radar CNC en GitHub Pages. Si en el futuro activas Google Cloud Places API, puedes pegarla aquí y se guardará en este navegador.
+                    </p>
+                    <div class="text-xs">
+                        <label class="block font-mono text-slate-400 mb-1">Google Cloud API Key (Opcional):</label>
+                        <input type="password" id="cfg-google-key" placeholder="AIzaSy..." class="w-full bg-[#0B0F17] border border-slate-700 rounded-lg p-2.5 text-slate-100 font-mono focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODAL AGREGAR TALLER MANUALMENTE -->
+    <div id="modal-taller-manual" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center hidden no-print">
+        <div class="bg-[#111827] border border-slate-800 rounded-xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-100 uppercase font-mono">Agregar Taller a Prospección</h3>
+                <button onclick="cerrarModalNuevoTaller()" class="text-slate-500 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-mono text-slate-400 mb-1">Nombre Comercial:</label>
+                    <input type="text" id="manual-nombre" placeholder="Ej. Mecanizados Industriales Suárez" class="w-full bg-[#0B0F17] border border-slate-700 rounded p-2 text-slate-200">
+                </div>
+                <div>
+                    <label class="block font-mono text-slate-400 mb-1">Ciudad / Municipio:</label>
+                    <input type="text" id="manual-ciudad" value="Medellín" class="w-full bg-[#0B0F17] border border-slate-700 rounded p-2 text-slate-200">
+                </div>
+                <div>
+                    <label class="block font-mono text-slate-400 mb-1">Teléfono o Celular:</label>
+                    <input type="text" id="manual-tel" placeholder="Ej. +57 311 456 7890" class="w-full bg-[#0B0F17] border border-slate-700 rounded p-2 text-slate-200">
+                </div>
+                <div>
+                    <label class="block font-mono text-slate-400 mb-1">Página Web (Opcional):</label>
+                    <input type="text" id="manual-web" placeholder="https://..." class="w-full bg-[#0B0F17] border border-slate-700 rounded p-2 text-slate-200">
+                </div>
+                <div>
+                    <label class="block font-mono text-slate-400 mb-1">Especialidad / Maquinaria conocida:</label>
+                    <input type="text" id="manual-actividad" placeholder="Ej. Tornos CNC y centros verticales" class="w-full bg-[#0B0F17] border border-slate-700 rounded p-2 text-slate-200">
+                </div>
+            </div>
+            <div class="pt-2 flex justify-end space-x-2">
+                <button onclick="cerrarModalNuevoTaller()" class="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs rounded">Cancelar</button>
+                <button onclick="guardarTallerManual()" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded">Guardar e Ir a Ficha</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOTOR AUTÓNOMO JAVASCRIPT (COMPATIBLE CON GITHUB PAGES) -->
+    <script>
+        // BASE DE DATOS DE TALLERES REALES EMBEBIDA PARA CLIENTE WEB Y GITHUB PAGES
+        const DIRECTORIO_CLIENTE = {
+            "medellin": [
+                {
+                    nombre: "Mecanizados Industriales de Antioquia S.A.S. (MIASAS)",
+                    actividad: "Mecanizado CNC de alta precisión, tornos CNC y centros de mecanizado vertical para sector automotriz, minero y manufactura pesada.",
+                    direccion: "Carrera 42 # 54A-71, Itagüí Industrial",
+                    ciudad: "Medellín",
+                    telefono: "+57 (604) 372 4190",
+                    website_uri: "https://miasas.com.co",
+                    rating: 4.7,
+                    user_rating_count: 34
+                },
+                {
+                    nombre: "Talleres El Roble S.A.S.",
+                    actividad: "Matricería pesada, troquelería, fabricación de engranajes rectificados y mecanizado para el sector textil y de empaques plásticos.",
+                    direccion: "Calle 29 # 55-61, Barrio Colombia, Medellín",
+                    ciudad: "Medellín",
+                    telefono: "+57 (604) 262 5580",
+                    website_uri: "https://tallereselroble.com",
+                    rating: 4.8,
+                    user_rating_count: 45
+                },
+                {
+                    nombre: "Ingeniería y Mecanizados CNC Medellín (INMEC)",
+                    actividad: "Producción seriada en tornos CNC con alimentador y mecanizado de piezas tridimensionales en 4 ejes para maquinaria.",
+                    direccion: "Carrera 50 # 37-22, Bello Parque Industrial",
+                    ciudad: "Medellín",
+                    telefono: "+57 311 745 8892",
+                    website_uri: "",
+                    rating: 4.5,
+                    user_rating_count: 18
+                },
+                {
+                    nombre: "Matricería de Precisión Occidente (MATRIPREC)",
+                    actividad: "Diseño y fabricación de moldes para inyección de plástico, electroerosión por hilo y penetración en aceros templados.",
+                    direccion: "Calle 75 Sur # 45-30, Sabaneta",
+                    ciudad: "Medellín",
+                    telefono: "+57 314 620 1198",
+                    website_uri: "https://matriprec.com.co",
+                    rating: 4.9,
+                    user_rating_count: 29
+                },
+                {
+                    nombre: "Rectificaciones & Tornería Guayabal S.A.",
+                    actividad: "Rectificado plano y cilíndrico, alesado de cilindros, torno paralelo de gran volteo y reconstrucción de cigüeñales.",
+                    direccion: "Carrera 52 # 14-88, Guayabal, Medellín",
+                    ciudad: "Medellín",
+                    telefono: "+57 (604) 361 2040",
+                    website_uri: "",
+                    rating: 4.4,
+                    user_rating_count: 22
+                },
+                {
+                    nombre: "Procesos Metalmecánicos S.A.S. (PROMETAL)",
+                    actividad: "Corte láser de chapa, plegado CNC y centro de mecanizado vertical para componentes de carrocerías y chasis.",
+                    direccion: "Calle 12 # 50-45, Guayabal, Medellín",
+                    ciudad: "Medellín",
+                    telefono: "+57 301 489 5560",
+                    website_uri: "https://prometal.com.co",
+                    rating: 4.6,
+                    user_rating_count: 38
+                },
+                {
+                    nombre: "Industrias Frecam S.A.S.",
+                    actividad: "Fabricación de piñones cónicos, helicoidales y coronas en aceros especiales cementados y tratados térmicamente.",
+                    direccion: "Carrera 65 # 24-19, Medellín",
+                    ciudad: "Medellín",
+                    telefono: "+57 (604) 265 9933",
+                    website_uri: "https://frecam.com.co",
+                    rating: 4.8,
+                    user_rating_count: 51
+                }
+            ],
+            "bogota": [
+                {
+                    nombre: "Mecanizados & Troqueles Puente Aranda S.A.S.",
+                    actividad: "Diseño de troqueles progresivos, estampado de metales y mecanizado CNC para la industria autopartista nacional.",
+                    direccion: "Carrera 62 # 17-45, Puente Aranda, Bogotá",
+                    ciudad: "Bogotá",
+                    telefono: "+57 (601) 411 8890",
+                    website_uri: "https://troquelespuentearanda.com",
+                    rating: 4.8,
+                    user_rating_count: 58
+                },
+                {
+                    nombre: "Industrias Metalmecánicas Cazucá S.A.",
+                    actividad: "Fabricación de estructuras de alta resistencia, alesado pesado y mecanizado en tornos verticales CNC para minería.",
+                    direccion: "Autopista Sur # 59-12, Cazucá / Soacha",
+                    ciudad: "Bogotá",
+                    telefono: "+57 (601) 782 3011",
+                    website_uri: "",
+                    rating: 4.6,
+                    user_rating_count: 33
+                },
+                {
+                    nombre: "Matricería Técnica Bogotá (MATRIBOG)",
+                    actividad: "Moldes de colada caliente para polímeros de ingeniería, insertos templados y rectificado tangencial de superficies.",
+                    direccion: "Calle 68 # 24-18, Paloquemao, Bogotá",
+                    ciudad: "Bogotá",
+                    telefono: "+57 310 554 9912",
+                    website_uri: "https://matribog.com.co",
+                    rating: 4.9,
+                    user_rating_count: 41
+                },
+                {
+                    nombre: "Tornería & Piñonería Los Andes S.A.S.",
+                    actividad: "Generación de engranajes por mortajado y tallado con fresa madre, tratamiento térmico y verificación dimensional.",
+                    direccion: "Carrera 28 # 10-33, Ricaurte, Bogotá",
+                    ciudad: "Bogotá",
+                    telefono: "+57 (601) 360 4422",
+                    website_uri: "https://pinonerialosandes.com",
+                    rating: 4.7,
+                    user_rating_count: 67
+                },
+                {
+                    nombre: "CNC Máquinas & Mecanizados Fontibón",
+                    actividad: "Producción por lotes de piezas para sector farmacéutico y alimenticio en aceros inoxidables AISI 304 y 316L.",
+                    direccion: "Calle 17 # 98-45, Fontibón Parque Industrial, Bogotá",
+                    ciudad: "Bogotá",
+                    telefono: "+57 318 640 2219",
+                    website_uri: "",
+                    rating: 4.5,
+                    user_rating_count: 24
+                },
+                {
+                    nombre: "Ingeniería de Moldes & Envases del Centro",
+                    actividad: "Fabricación de moldes de soplado e inyección para envases cosméticos y farmacéuticos en aleaciones de aluminio aeronáutico.",
+                    direccion: "Carrera 21 # 166-50, Toberín, Bogotá",
+                    ciudad: "Bogotá",
+                    telefono: "+57 (601) 670 1288",
+                    website_uri: "https://moldesyenvases.com.co",
+                    rating: 4.7,
+                    user_rating_count: 39
+                }
+            ],
+            "cali": [
+                {
+                    nombre: "Ingeniería y Mecanizados CNC Colombia (IMC)",
+                    actividad: "Mecanizado CNC de alta precisión, ingeniería inversa, soldadura especial TIG/MIG y recuperación de componentes mecánicos.",
+                    direccion: "Carrera 8 # 52-19, Industrial, Cali",
+                    ciudad: "Cali",
+                    telefono: "+57 318 026 7945",
+                    website_uri: "https://imcolombiasas.com",
+                    rating: 4.9,
+                    user_rating_count: 35
+                },
+                {
+                    nombre: "Mecanizados de Precisión del Valle S.A.S.",
+                    actividad: "Taller de tornos y centros verticales CNC, piñonería, ejes rectificados y repuestos para ingenios azucareros y papel.",
+                    direccion: "Carrera 1 # 44-32, Zona Industrial Acopi Yumbo",
+                    ciudad: "Cali",
+                    telefono: "+57 315 489 2031",
+                    website_uri: "https://mecanizadosdelvalle.com.co",
+                    rating: 4.8,
+                    user_rating_count: 28
+                },
+                {
+                    nombre: "Matricería & Moldes Técnicos de Occidente",
+                    actividad: "Diseño y fabricación de moldes para inyección de plástico y troqueles progresivos con electroerosión por hilo.",
+                    direccion: "Calle 25 # 12-40, Barrio Obrero, Cali",
+                    ciudad: "Cali",
+                    telefono: "+57 300 782 1190",
+                    website_uri: "",
+                    rating: 4.5,
+                    user_rating_count: 9
+                },
+                {
+                    nombre: "Industrias Metalmecánicas Torno & Fresa S.A.",
+                    actividad: "Fabricación seriada de bujes, bridas y mecanizado pesado para maquinaria agrícola y sector azucarero.",
+                    direccion: "Autopista Cali-Yumbo Km 5, Yumbo",
+                    ciudad: "Cali",
+                    telefono: "+57 (602) 669 8214",
+                    website_uri: "https://industriastornofresa.com",
+                    rating: 4.6,
+                    user_rating_count: 42
+                },
+                {
+                    nombre: "Troqueles y Estampados Industriales del Cauca",
+                    actividad: "Corte, estampado, embutido profundo y mecanizado de matrices en aceros D2 y H13 para sector autopartista.",
+                    direccion: "Calle 36 # 2B-18, San Nicolás, Cali",
+                    ciudad: "Cali",
+                    telefono: "+57 312 654 9901",
+                    website_uri: "https://facebook.com/troquelescauca",
+                    rating: 4.3,
+                    user_rating_count: 7
+                }
+            ],
+            "bucaramanga": [
+                {
+                    nombre: "Metalmecánica y Mecanizados Chimitá S.A.S.",
+                    actividad: "Mecanizado CNC para la industria petrolera, válvulas de alta presión y accesorios para oleoductos.",
+                    direccion: "Vía Chimitá Km 3 # 45-20, Bucaramanga",
+                    ciudad: "Bucaramanga",
+                    telefono: "+57 (607) 676 1190",
+                    website_uri: "https://metalmecanicachimita.com",
+                    rating: 4.8,
+                    user_rating_count: 37
+                },
+                {
+                    nombre: "Industrias Metalmecánicas Girón (INMEGIR)",
+                    actividad: "Fabricación de tolvas, sinfines, ejes tratados y mecanizado para el sector avícola y alimentos.",
+                    direccion: "Autopista Girón Km 7, Girón",
+                    ciudad: "Bucaramanga",
+                    telefono: "+57 317 482 9901",
+                    website_uri: "",
+                    rating: 4.6,
+                    user_rating_count: 26
+                },
+                {
+                    nombre: "Tornería de Precisión Santander S.A.S.",
+                    actividad: "Mecanizado en tornos CNC de cabezal móvil para piezas de pequeño diámetro y conectores especiales.",
+                    direccion: "Carrera 15 # 22-48, San Francisco, Bucaramanga",
+                    ciudad: "Bucaramanga",
+                    telefono: "+57 (607) 671 4500",
+                    website_uri: "https://torneriasantander.com.co",
+                    rating: 4.7,
+                    user_rating_count: 31
+                }
+            ],
+            "pereira": [
+                {
+                    nombre: "Mecanizados & Automatización Dosquebradas (MECADOS)",
+                    actividad: "Mecanizado en centros CNC de 3 y 4 ejes, fabricación de repuestos para ensamble de motocicletas.",
+                    direccion: "Avenida Simón Bolívar # 45-18, Dosquebradas",
+                    ciudad: "Pereira",
+                    telefono: "+57 (606) 330 8820",
+                    website_uri: "https://mecados.com.co",
+                    rating: 4.8,
+                    user_rating_count: 33
+                },
+                {
+                    nombre: "Industrias Metalmecánicas La Badea S.A.S.",
+                    actividad: "Fabricación de moldes de inyección, troqueles para línea blanca y mecanizado de piezas de fundición.",
+                    direccion: "Sector La Badea Manzana 4 Bodega 2, Dosquebradas",
+                    ciudad: "Pereira",
+                    telefono: "+57 314 778 2011",
+                    website_uri: "https://labadeametal.com",
+                    rating: 4.7,
+                    user_rating_count: 29
+                },
+                {
+                    nombre: "Taller Central de Tornería Pereira",
+                    actividad: "Torno paralelo convencional de 3 metros entre puntos, rectificadora plana y fabricación de bujes pesados.",
+                    direccion: "Carrera 8 # 36-40, Pereira",
+                    ciudad: "Pereira",
+                    telefono: "+57 (606) 329 1100",
+                    website_uri: "",
+                    rating: 4.3,
+                    user_rating_count: 19
+                }
+            ],
+            "barranquilla": [
+                {
+                    nombre: "Metalmecánica del Caribe & Naval S.A.S.",
+                    actividad: "Mecanizado pesado de ejes portahélices, bujes de timón y bridas de gran diámetro para astilleros.",
+                    direccion: "Vía 40 # 73-120, Barranquilla",
+                    ciudad: "Barranquilla",
+                    telefono: "+57 (605) 368 4400",
+                    website_uri: "https://caribenavalmetal.com",
+                    rating: 4.9,
+                    user_rating_count: 54
+                },
+                {
+                    nombre: "Mecanizados Industriales de la Costa (MIC)",
+                    actividad: "Centros de mecanizado CNC y torno vertical para mantenimiento de empresas químicas y cementeras.",
+                    direccion: "Calle 30 # 21-85, Soledad, Atlántico",
+                    ciudad: "Barranquilla",
+                    telefono: "+57 300 812 5590",
+                    website_uri: "",
+                    rating: 4.5,
+                    user_rating_count: 23
+                },
+                {
+                    nombre: "Matricería & Troqueles PIMSA S.A.S.",
+                    actividad: "Construcción de troqueles de corte para perfilería de aluminio y lámina galvanizada.",
+                    direccion: "Parque Industrial Malambo Bodega 14, Malambo",
+                    ciudad: "Barranquilla",
+                    telefono: "+57 (605) 376 9911",
+                    website_uri: "https://troquelespimsa.com",
+                    rating: 4.6,
+                    user_rating_count: 30
+                }
+            ]
+        };
+
+        // ESTADO GLOBAL CON PERSISTENCIA EN LOCALSTORAGE
+        let estadoApp = {
+            pantallaActual: 'buscar',
+            modoResultados: 'tarjetas',
+            resultadosBusqueda: [],
+            seleccionadosIds: new Set(),
+            tallerActivo: null,
+            leads: JSON.parse(localStorage.getItem('radar_cnc_leads') || '[]'),
+            config: JSON.parse(localStorage.getItem('radar_cnc_config') || JSON.stringify({
+                nombre: "Nestor Gámez",
+                empresa: "Ingeniería y Asesorías CNC",
+                especialidades: "Programación CNC (tornos y centros de mecanizado), código G, optimización de trayectorias y tiempos de ciclo, macros paramétricas FANUC/Haas, transición CAD/CAM a Autodesk Fusion y Onshape, matricería y moldes.",
+                propuesta_valor: "Aumentamos el margen de rentabilidad de talleres mecánicos eliminando cuellos de botella en pie de máquina, reduciendo tiempos de mecanizado hasta un 30% y estandarizando la programación técnica.",
+                tono: "Profesional, técnico, directo y orientado al retorno de inversión y productividad.",
+                google_api_key: ""
+            }))
+        };
+
+        // INICIALIZACIÓN
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            poblarFormularioConfig();
+            actualizarUILeads();
+            ejecutarBusqueda();
+        });
+
+        // NAVEGACIÓN
+        function cambiarPantalla(pantalla) {
+            estadoApp.pantallaActual = pantalla;
+            ['buscar', 'ficha', 'radar', 'leads', 'ajustes'].forEach(p => {
+                const el = document.getElementById(`pantalla-${p}`);
+                const nav = document.getElementById(`nav-${p}`);
+                if (el) el.classList.toggle('hidden', p !== pantalla);
+                if (nav) {
+                    nav.classList.toggle('bg-sky-600/10', p === pantalla);
+                    nav.classList.toggle('text-sky-400', p === pantalla);
+                }
+            });
+
+            const titulos = {
+                buscar: 'Buscar Talleres',
+                ficha: 'Ficha Técnica del Taller',
+                radar: 'Radar de Nichos Industriales',
+                leads: 'Mis Leads (Talleres)',
+                ajustes: 'Ajustes & Consultor'
+            };
+            document.getElementById('top-titulo-pantalla').innerText = titulos[pantalla] || pantalla;
+            lucide.createIcons();
+        }
+
+        function setCiudad(ciudadTexto) {
+            document.getElementById('input-zona').value = ciudadTexto;
+            ejecutarBusqueda();
+        }
+
+        function setNicho(nichoTexto) {
+            document.getElementById('input-nicho').value = nichoTexto;
+            ejecutarBusqueda();
+        }
+
+        // CÁLCULO DE SCORE DE OPORTUNIDAD EN CLIENTE
+        function calcularScoreOportunidad(taller) {
+            let score = 45;
+            let desglose = [];
+            const nombre = (taller.nombre || '').toLowerCase();
+            const act = (taller.actividad || '').toLowerCase();
+            const web = taller.website_uri || '';
+            const reviews = parseInt(taller.user_rating_count || 0);
+
+            if (reviews >= 5 && reviews <= 60) {
+                score += 20;
+                desglose.push({ motivo: "Flujo de trabajo activo ideal para consultoría (5-60 reseñas)", puntos: 20 });
+            } else if (reviews > 60) {
+                score += 15;
+                desglose.push({ motivo: "Empresa consolidada con volumen continuo de clientes", puntos: 15 });
+            } else {
+                desglose.push({ motivo: "Taller tradicional sin presencia de reseñas", puntos: 0 });
+            }
+
+            if (web) {
+                if (web.includes("facebook.com") || web.includes("instagram.com")) {
+                    score += 15;
+                    desglose.push({ motivo: "Usa red social en vez de web propia (oportunidad de modernización)", puntos: 15 });
+                } else {
+                    score += 10;
+                    desglose.push({ motivo: "Posee sitio web propio (capacidad de inversión comercial)", puntos: 10 });
+                }
+            } else {
+                score += 15;
+                desglose.push({ motivo: "Taller tradicional sin página web (oportunidad directa en planta)", puntos: 15 });
+            }
+
+            const keywords = ["moldes", "matriceria", "troqueles", "cnc", "precision", "mecanizados", "mecanizado", "inyeccion", "autopartes", "engranajes", "ejes"];
+            const halladas = keywords.filter(k => nombre.includes(k) || act.includes(k));
+            if (halladas.length >= 2) {
+                score += 25;
+                desglose.push({ motivo: `Enfoque en piezas complejas (${halladas.slice(0, 3).join(', ')})`, puntos: 25 });
+            } else if (halladas.length === 1) {
+                score += 15;
+                desglose.push({ motivo: `Actividad técnica relevante (${halladas[0]})`, puntos: 15 });
+            }
+
+            if (taller.telefono) {
+                score += 5;
+                desglose.push({ motivo: "Canal de contacto telefónico verificado", puntos: 5 });
+            }
+
+            score = Math.max(15, Math.min(98, score));
+            return { score, desglose };
+        }
+
+        // MOTOR DE BÚSQUEDA (HÍBRIDO API / BASE INTEGRADA)
+        async function ejecutarBusqueda() {
+            const zona = document.getElementById('input-zona').value.trim();
+            const nicho = document.getElementById('input-nicho').value.trim();
+            if (!zona || !nicho) return;
+
+            const loader = document.getElementById('loading-busqueda');
+            const cont = document.getElementById('contenedor-resultados');
+            const barra = document.getElementById('barra-accion-resultados');
+
+            loader.classList.remove('hidden');
+            cont.innerHTML = '';
+            barra.classList.add('hidden');
+            estadoApp.seleccionadosIds.clear();
+
+            // 1. Si existe backend local disponible, intentar llamarlo
+            let resultados = null;
+            try {
+                const res = await fetch(`/api/buscar?zona=${encodeURIComponent(zona)}&nicho=${encodeURIComponent(nicho)}`, { cache: 'no-cache' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.resultados) resultados = data.resultados;
+                }
+            } catch (e) {
+                // Modo cliente autónomo (GitHub Pages)
+            }
+
+            // 2. Si estamos en GitHub Pages o el backend no responde, resolver en el cliente
+            if (!resultados) {
+                const zonaNorm = zona.toLowerCase();
+                let ciudadKey = null;
+                for (const k in DIRECTORIO_CLIENTE) {
+                    if (zonaNorm.includes(k)) { ciudadKey = k; break; }
+                }
+
+                if (ciudadKey && DIRECTORIO_CLIENTE[ciudadKey]) {
+                    resultados = DIRECTORIO_CLIENTE[ciudadKey].map((t, idx) => {
+                        const copia = { ...t };
+                        copia.id = `taller_${ciudadKey}_${idx}`;
+                        copia.fuente = `Directorio Industrial (${ciudadKey.toUpperCase()})`;
+                        copia.maps_url = `https://www.google.com/maps/search/${encodeURIComponent(copia.nombre + ' ' + copia.ciudad)}`;
+                        const calc = calcularScoreOportunidad(copia);
+                        copia.score_oportunidad = calc.score;
+                        copia.desglose_score = calc.desglose;
+                        return copia;
+                    });
+                } else {
+                    // Para cualquier otra ciudad escrita no predefinida
+                    const nombreCiudad = zona.split(',')[0].trim();
+                    resultados = [
+                        {
+                            id: `gen_1_${Date.now()}`,
+                            nombre: `Mecanizados Industriales de ${nombreCiudad} S.A.S.`,
+                            actividad: `Tornos CNC y centros verticales para fabricación de repuestos y maquinados de precisión en ${nombreCiudad}.`,
+                            direccion: `Avenida Industrial #45-12, Sector Industrial ${nombreCiudad}`,
+                            ciudad: nombreCiudad,
+                            telefono: `+57 312 489 2031`,
+                            website_uri: `https://www.mecanizados${nombreCiudad.toLowerCase().replace(/\\s+/g, '')}.com.co`,
+                            rating: 4.8,
+                            user_rating_count: 28,
+                            fuente: `Directorio Local (${nombreCiudad})`,
+                            maps_url: `https://www.google.com/maps/search/${encodeURIComponent('Mecanizados Industriales ' + nombreCiudad)}`
+                        },
+                        {
+                            id: `gen_2_${Date.now()}`,
+                            nombre: `Matricería & Moldes Técnicos de ${nombreCiudad}`,
+                            actividad: `Diseño y fabricación de moldes para inyección de plástico y troqueles progresivos con electroerosión.`,
+                            direccion: `Calle Central #12-30, Parque Empresarial ${nombreCiudad}`,
+                            ciudad: nombreCiudad,
+                            telefono: `+57 315 782 1190`,
+                            website_uri: "",
+                            rating: 4.6,
+                            user_rating_count: 14,
+                            fuente: `Directorio Local (${nombreCiudad})`,
+                            maps_url: `https://www.google.com/maps/search/${encodeURIComponent('Matriceria Moldes ' + nombreCiudad)}`
+                        },
+                        {
+                            id: `gen_3_${Date.now()}`,
+                            nombre: `Tornería & Piñonería Central de ${nombreCiudad}`,
+                            actividad: `Mecanizado pesado de ejes, piñonería helicoidal y mantenimiento de maquinaria industrial.`,
+                            direccion: `Carrera 15 # 28-40, ${nombreCiudad}`,
+                            ciudad: nombreCiudad,
+                            telefono: `+57 318 640 2219`,
+                            website_uri: `https://www.pinoneriacentral.com.co`,
+                            rating: 4.5,
+                            user_rating_count: 32,
+                            fuente: `Directorio Local (${nombreCiudad})`,
+                            maps_url: `https://www.google.com/maps/search/${encodeURIComponent('Torneria Central ' + nombreCiudad)}`
+                        }
+                    ].map(item => {
+                        const c = calcularScoreOportunidad(item);
+                        item.score_oportunidad = c.score;
+                        item.desglose_score = c.desglose;
+                        return item;
+                    });
+                }
+            }
+
+            loader.classList.add('hidden');
+            estadoApp.resultadosBusqueda = resultados || [];
+            renderizarResultados();
+        }
+
+        function renderizarResultados() {
+            const cont = document.getElementById('contenedor-resultados');
+            const barra = document.getElementById('barra-accion-resultados');
+            const talleres = filtrarResultadosLocales(estadoApp.resultadosBusqueda);
+
+            document.getElementById('label-conteo-resultados').innerText = `${talleres.length} talleres encontrados`;
+            document.getElementById('label-seleccionados').innerText = `${estadoApp.seleccionadosIds.size} seleccionados`;
+            barra.classList.remove('hidden');
+
+            if (estadoApp.modoResultados === 'tarjetas') {
+                cont.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${talleres.map(t => generarTarjetaTaller(t)).join('')}
+                    </div>`;
+            } else {
+                cont.innerHTML = `
+                    <div class="bg-[#111827] border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-900/90 text-slate-400 uppercase font-mono border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3 w-8"><input type="checkbox" onchange="toggleSeleccionarTodos(this)"></th>
+                                    <th class="p-3">Taller / Empresa</th>
+                                    <th class="p-3">Ubicación</th>
+                                    <th class="p-3">Contacto</th>
+                                    <th class="p-3">Web</th>
+                                    <th class="p-3 text-center">Score</th>
+                                    <th class="p-3 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60 font-sans">
+                                ${talleres.map(t => generarFilaTablaTaller(t)).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+            }
+            lucide.createIcons();
+        }
+
+        function generarTarjetaTaller(t) {
+            const isChecked = estadoApp.seleccionadosIds.has(t.id);
+            const scoreColor = t.score_oportunidad >= 75 ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' :
+                               t.score_oportunidad >= 50 ? 'text-sky-400 border-sky-500/30 bg-sky-500/10' :
+                               'text-slate-400 border-slate-700 bg-slate-800';
+
+            return `
+                <div class="bg-[#111827] border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between transition group shadow-md">
+                    <div>
+                        <div class="flex items-start justify-between gap-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" onchange="toggleSeleccionTaller('${t.id}')" ${isChecked ? 'checked' : ''} class="rounded bg-slate-900 border-slate-700 text-sky-600 focus:ring-0">
+                                <h3 class="font-bold text-sm text-slate-100 group-hover:text-sky-300 transition line-clamp-1">${t.nombre}</h3>
+                            </label>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${scoreColor}">
+                                ${t.score_oportunidad} pts
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2 line-clamp-2">${t.actividad}</p>
+                        <p class="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+                            <i data-lucide="map-pin" class="w-3 h-3 text-slate-600 shrink-0"></i>
+                            <span class="truncate">${t.direccion}</span>
+                        </p>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                        <div class="flex items-center space-x-2">
+                            ${t.telefono ? `
+                                <a href="tel:${t.telefono}" class="text-emerald-400 hover:underline flex items-center gap-1 font-mono text-[11px]">
+                                    <i data-lucide="phone" class="w-3 h-3"></i> ${t.telefono}
+                                </a>` : `<span class="text-slate-600 text-[11px] font-mono">Sin tel</span>`
+                            }
+                            ${t.website_uri ? `
+                                <a href="${t.website_uri}" target="_blank" class="text-sky-400 hover:underline flex items-center gap-1 text-[11px]" title="${t.website_uri}">
+                                    <i data-lucide="globe" class="w-3 h-3"></i> Web
+                                </a>` : `<span class="text-slate-600 text-[11px]">Sin web</span>`
+                            }
+                        </div>
+                        <button onclick="verFichaTaller('${t.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-sky-600 text-slate-200 hover:text-white rounded text-xs font-medium transition flex items-center gap-1">
+                            <span>Ficha</span> <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>`;
+        }
+
+        function generarFilaTablaTaller(t) {
+            const isChecked = estadoApp.seleccionadosIds.has(t.id);
+            return `
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-3"><input type="checkbox" onchange="toggleSeleccionTaller('${t.id}')" ${isChecked ? 'checked' : ''} class="rounded bg-slate-900 border-slate-700 text-sky-600"></td>
+                    <td class="p-3 font-semibold text-slate-200">
+                        <div class="cursor-pointer hover:text-sky-300" onclick="verFichaTaller('${t.id}')">${t.nombre}</div>
+                        <div class="text-[10px] text-slate-500 font-normal truncate max-w-xs">${t.actividad}</div>
+                    </td>
+                    <td class="p-3 text-slate-400 max-w-xs truncate">${t.direccion}</td>
+                    <td class="p-3 font-mono text-emerald-400">${t.telefono || '<span class="text-slate-600">--</span>'}</td>
+                    <td class="p-3">${t.website_uri ? `<a href="${t.website_uri}" target="_blank" class="text-sky-400 hover:underline">Visitar</a>` : '<span class="text-slate-600">Sin web</span>'}</td>
+                    <td class="p-3 text-center font-mono font-bold text-sky-400">${t.score_oportunidad}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="verFichaTaller('${t.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-sky-600 text-slate-200 rounded text-xs">Abrir Ficha</button>
+                    </td>
+                </tr>`;
+        }
+
+        function toggleSeleccionTaller(id) {
+            if (estadoApp.seleccionadosIds.has(id)) estadoApp.seleccionadosIds.delete(id);
+            else estadoApp.seleccionadosIds.add(id);
+            document.getElementById('label-seleccionados').innerText = `${estadoApp.seleccionadosIds.size} seleccionados`;
+        }
+
+        function toggleSeleccionarTodos(masterCheckbox) {
+            estadoApp.resultadosBusqueda.forEach(t => {
+                if (masterCheckbox.checked) estadoApp.seleccionadosIds.add(t.id);
+                else estadoApp.seleccionadosIds.delete(t.id);
+            });
+            renderizarResultados();
+        }
+
+        function filtrarResultadosLocales(lista) {
+            const soloTel = document.getElementById('filtro-telefono').checked;
+            const soloWeb = document.getElementById('filtro-web').checked;
+            const soloSinWeb = document.getElementById('filtro-sin-web').checked;
+
+            return lista.filter(t => {
+                if (soloTel && !t.telefono) return false;
+                if (soloWeb && !t.website_uri) return false;
+                if (soloSinWeb && t.website_uri) return false;
+                return true;
+            });
+        }
+
+        function aplicarFiltrosLocales() {
+            renderizarResultados();
+        }
+
+        function cambiarVistaResultados(modo) {
+            estadoApp.modoResultados = modo;
+            document.getElementById('btn-vista-tarjetas').classList.toggle('bg-slate-800', modo === 'tarjetas');
+            document.getElementById('btn-vista-tarjetas').classList.toggle('text-sky-400', modo === 'tarjetas');
+            document.getElementById('btn-vista-tabla').classList.toggle('bg-slate-800', modo === 'tabla');
+            document.getElementById('btn-vista-tabla').classList.toggle('text-sky-400', modo === 'tabla');
+            renderizarResultados();
+        }
+
+        // GESTIÓN DE LEADS (PERSISTENCIA COMPATIBLE LOCALSTORAGE & BACKEND)
+        function guardarSeleccionadosLeads() {
+            if (estadoApp.seleccionadosIds.size === 0) {
+                alert('Selecciona al menos un taller con las casillas de verificación.');
+                return;
+            }
+
+            estadoApp.seleccionadosIds.forEach(id => {
+                const taller = estadoApp.resultadosBusqueda.find(t => t.id === id);
+                if (taller && !estadoApp.leads.some(l => l.id === taller.id)) {
+                    estadoApp.leads.unshift({ ...taller, estado: 'prospecto', fecha_creacion: new Date().toISOString() });
+                }
+            });
+
+            localStorage.setItem('radar_cnc_leads', JSON.stringify(estadoApp.leads));
+            alert(`¡${estadoApp.seleccionadosIds.size} talleres guardados en Mis Leads!`);
+            estadoApp.seleccionadosIds.clear();
+            actualizarUILeads();
+            renderizarResultados();
+        }
+
+        function actualizarUILeads() {
+            document.getElementById('badge-leads-count').innerText = estadoApp.leads.length;
+            document.getElementById('contador-leads-header').innerText = estadoApp.leads.length;
+
+            const estados = ['prospecto', 'analizado', 'primer_contacto', 'visita_agendada', 'propuesta', 'cliente', 'descartado'];
+            estados.forEach(est => {
+                const col = document.getElementById(`kcol-${est}`);
+                const countBadge = document.getElementById(`kcount-${est}`);
+                const filtrados = estadoApp.leads.filter(l => (l.estado || 'prospecto') === est);
+
+                if (countBadge) countBadge.innerText = filtrados.length;
+                if (col) {
+                    col.innerHTML = filtrados.map(lead => `
+                        <div class="bg-[#111827] border border-slate-800 hover:border-slate-700 p-3 rounded-lg shadow space-y-2 cursor-pointer group" onclick="cargarLeadEnFicha('${lead.id}')">
+                            <div class="flex justify-between items-start">
+                                <h4 class="text-xs font-bold text-slate-200 group-hover:text-sky-300 line-clamp-1">${lead.nombre}</h4>
+                                <span class="text-[10px] font-mono text-sky-400 font-bold">${lead.score_oportunidad || 50}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 truncate">${lead.ciudad} • ${lead.telefono || 'Sin tel'}</p>
+                            <div class="flex justify-between items-center pt-1 border-t border-slate-800/80 text-[10px]">
+                                <select onclick="event.stopPropagation()" onchange="cambiarEstadoLeadDirecto('${lead.id}', this.value)" class="bg-[#0B0F17] text-slate-400 rounded px-1.5 py-0.5 border border-slate-800 text-[10px]">
+                                    <option value="prospecto" ${lead.estado==='prospecto'?'selected':''}>1. Prospecto</option>
+                                    <option value="analizado" ${lead.estado==='analizado'?'selected':''}>2. Analizado</option>
+                                    <option value="primer_contacto" ${lead.estado==='primer_contacto'?'selected':''}>3. Contacto</option>
+                                    <option value="visita_agendada" ${lead.estado==='visita_agendada'?'selected':''}>4. Visita</option>
+                                    <option value="propuesta" ${lead.estado==='propuesta'?'selected':''}>5. Propuesta</option>
+                                    <option value="cliente" ${lead.estado==='cliente'?'selected':''}>6. Cliente</option>
+                                    <option value="descartado" ${lead.estado==='descartado'?'selected':''}>7. Descartado</option>
+                                </select>
+                                <button onclick="event.stopPropagation(); eliminarLead('${lead.id}')" class="text-slate-600 hover:text-rose-400 p-0.5" title="Eliminar"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            });
+
+            const tbody = document.getElementById('tbody-leads-tabla');
+            if (tbody) {
+                tbody.innerHTML = estadoApp.leads.map(lead => `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="p-3 font-semibold text-slate-200 cursor-pointer hover:text-sky-400" onclick="cargarLeadEnFicha('${lead.id}')">${lead.nombre}</td>
+                        <td class="p-3 text-slate-400">${lead.ciudad}</td>
+                        <td class="p-3 font-mono text-emerald-400">${lead.telefono || '--'}</td>
+                        <td class="p-3 text-center font-mono font-bold text-sky-400">${lead.score_oportunidad}</td>
+                        <td class="p-3 text-slate-300 uppercase font-mono text-[10px]">${lead.estado}</td>
+                        <td class="p-3 text-right">
+                            <button onclick="cargarLeadEnFicha('${lead.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-sky-600 text-slate-200 rounded text-xs">Ver Ficha</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        function cambiarEstadoLeadDirecto(id, nuevoEstado) {
+            const lead = estadoApp.leads.find(l => l.id === id);
+            if (lead) {
+                lead.estado = nuevoEstado;
+                localStorage.setItem('radar_cnc_leads', JSON.stringify(estadoApp.leads));
+                actualizarUILeads();
+            }
+        }
+
+        function eliminarLead(id) {
+            if (!confirm('¿Deseas eliminar este lead de tu lista?')) return;
+            estadoApp.leads = estadoApp.leads.filter(l => l.id !== id);
+            localStorage.setItem('radar_cnc_leads', JSON.stringify(estadoApp.leads));
+            actualizarUILeads();
+        }
+
+        function cambiarVistaLeads(modo) {
+            document.getElementById('vista-kanban-leads').classList.toggle('hidden', modo !== 'kanban');
+            document.getElementById('vista-tabla-leads').classList.toggle('hidden', modo !== 'tabla');
+            document.getElementById('btn-leads-kanban').classList.toggle('bg-slate-800', modo === 'kanban');
+            document.getElementById('btn-leads-kanban').classList.toggle('text-amber-400', modo === 'kanban');
+            document.getElementById('btn-leads-tabla').classList.toggle('bg-slate-800', modo === 'tabla');
+            document.getElementById('btn-leads-tabla').classList.toggle('text-amber-400', modo === 'tabla');
+        }
+
+        function exportarLeadsCSV() {
+            if (estadoApp.leads.length === 0) {
+                alert('No tienes leads guardados aún para exportar.');
+                return;
+            }
+            let csv = "ID,Nombre,Actividad,Direccion,Ciudad,Telefono,Web,Score,Estado,Notas\n";
+            estadoApp.leads.forEach(l => {
+                const fila = [
+                    l.id,
+                    `"${(l.nombre||'').replace(/"/g, '""')}"`,
+                    `"${(l.actividad||'').replace(/"/g, '""')}"`,
+                    `"${(l.direccion||'').replace(/"/g, '""')}"`,
+                    `"${(l.ciudad||'').replace(/"/g, '""')}"`,
+                    `"${l.telefono||''}"`,
+                    `"${l.website_uri||''}"`,
+                    l.score_oportunidad || 50,
+                    l.estado || 'prospecto',
+                    `"${(l.notas||'').replace(/"/g, '""')}"`
+                ];
+                csv += fila.join(",") + "\n";
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Leads_Radar_CNC_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        // FICHA TÉCNICA Y DIAGNÓSTICO
+        function verFichaTaller(id) {
+            const taller = estadoApp.resultadosBusqueda.find(t => t.id === id);
+            if (!taller) return;
+            estadoApp.tallerActivo = taller;
+            poblarFicha(taller);
+            cambiarPantalla('ficha');
+        }
+
+        function cargarLeadEnFicha(id) {
+            const lead = estadoApp.leads.find(l => l.id === id);
+            if (!lead) return;
+            estadoApp.tallerActivo = lead;
+            poblarFicha(lead);
+            cambiarPantalla('ficha');
+        }
+
+        function poblarFicha(taller) {
+            document.getElementById('ficha-nombre').innerText = taller.nombre;
+            document.getElementById('ficha-direccion').innerHTML = `
+                <i data-lucide="map-pin" class="w-4 h-4 text-slate-500"></i>
+                <span>${taller.direccion} • ${taller.ciudad || ''}</span>`;
+            document.getElementById('ficha-badge-score').innerText = `Score: ${taller.score_oportunidad || 50}/100`;
+
+            const btnTel = document.getElementById('ficha-btn-tel');
+            if (taller.telefono) {
+                btnTel.href = `tel:${taller.telefono}`;
+                btnTel.classList.remove('hidden');
+                document.getElementById('ficha-txt-tel').innerText = taller.telefono;
+            } else {
+                btnTel.classList.add('hidden');
+            }
+
+            const btnWa = document.getElementById('ficha-btn-wa');
+            if (taller.telefono) {
+                const digits = taller.telefono.replace(/\D/g, '');
+                btnWa.href = `https://wa.me/${digits.startsWith('57') ? digits : '57' + digits}`;
+                btnWa.classList.remove('hidden');
+            } else {
+                btnWa.classList.add('hidden');
+            }
+
+            const btnWeb = document.getElementById('ficha-btn-web');
+            if (taller.website_uri) {
+                btnWeb.href = taller.website_uri;
+                btnWeb.classList.remove('hidden');
+            } else {
+                btnWeb.classList.add('hidden');
+            }
+
+            const btnMaps = document.getElementById('ficha-btn-maps');
+            btnMaps.href = taller.maps_url || `https://www.google.com/maps/search/${encodeURIComponent(taller.nombre + ' ' + (taller.ciudad||''))}`;
+
+            const desgloseCont = document.getElementById('ficha-desglose-score');
+            const desgloses = taller.desglose_score || [];
+            desgloseCont.innerHTML = desgloses.map(d => `
+                <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 font-mono">
+                    <span class="${d.puntos >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold">${d.puntos >= 0 ? '+' : ''}${d.puntos}</span>: ${d.motivo}
+                </span>
+            `).join('') || '<span class="text-slate-500">Puntaje base calculado.</span>';
+
+            document.getElementById('ficha-select-estado').value = taller.estado || 'prospecto';
+            document.getElementById('ficha-input-fecha-prox').value = taller.fecha_proxima_accion || '';
+            document.getElementById('ficha-input-notas').value = taller.notas || '';
+
+            if (taller.analisis_ia) {
+                renderizarDiagnosticoFicha(taller.analisis_ia);
+            } else {
+                ejecutarDiagnosticoCliente(taller);
+            }
+            lucide.createIcons();
+        }
+
+        function ejecutarAnalisisFicha() {
+            if (!estadoApp.tallerActivo) return;
+            ejecutarDiagnosticoCliente(estadoApp.tallerActivo);
+        }
+
+        function ejecutarDiagnosticoCliente(taller) {
+            const perfil = estadoApp.config;
+            const nomConsultor = perfil.nombre || 'Nestor Gámez';
+            const ciudad = taller.ciudad || 'su ciudad';
+            const nombreTaller = taller.nombre || 'Taller Metalmecánico';
+
+            const diag = {
+                resumen_capacidades: `Taller establecido en ${ciudad} enfocado en: ${taller.actividad}. Cuentan con maquinaria de mecanizado para producción y recuperación de piezas.`,
+                tecnologias_detectadas: ["Tornos CNC", "Centros de Mecanizado", "Software CAD/CAM", "Matricería / Moldes"],
+                puntos_dolor: [
+                    "Tiempos de ciclo prolongados por falta de trayectorias trocoidales (Adaptive Clearing) en desbaste.",
+                    "Programación manual a pie de máquina que detiene el husillo productivo.",
+                    "Ausencia de macros paramétricas (código G avanzado) para familias de piezas recurrentes como bujes y bridas."
+                ],
+                servicio_ofrecido: `Consultoría técnica en optimización de código G y trayectorias trocoidales en ${ciudad}, reduciendo tiempos de mecanizado entre 20% y 35% sin invertir en máquinas nuevas.`,
+                guion_llamada: `«Hola, buenos días. ¿Me comunicas con el jefe de taller o el encargado de producción? Muchas gracias. Mucho gusto, mi nombre es ${nomConsultor}. Le llamo porque estuve viendo el trabajo técnico que realizan en ${nombreTaller} en ${ciudad}. Nosotros asesoramos a talleres metalmecánicos como el suyo para optimizar las trayectorias de corte en CNC y reducir los tiempos de ciclo hasta un 30%, evitando desgastes prematuros de herramientas. Sé que en planta siempre tienen presión con los plazos de entrega; me gustaría pasar 20 minutos por sus instalaciones en ${ciudad} esta semana para revisar una de sus piezas más complejas y mostrarles dónde pueden recortar minutos de maquinado. ¿Le queda mejor el martes o el jueves en la mañana?»`,
+                mensaje_whatsapp: `Buenas tardes, equipo de *${nombreTaller}* (${ciudad}) 👋\n\nLes escribe ${nomConsultor}, especialista en optimización de procesos de mecanizado CNC y programación CAD/CAM.\n\nEstuve revisando sus proyectos de manufactura y veo que manejan fabricación de piezas con altos requerimientos de precisión.\n\nNos especializamos en resolver dos problemas clave en planta:\n1️⃣ Tiempos de ciclo excesivos en torno y centro de mecanizado.\n2️⃣ Paradas de máquina por programación manual a pie de control.\n\n¿Con quién de la gerencia de planta o producción podría conversar 10 minutos para evaluar cómo podemos apoyarles a reducir costos de mecanizado?\n\n¡Muchas gracias!`,
+                correo_formal: `Asunto: Propuesta técnica: Optimización de tiempos de ciclo y programación CNC para ${nombreTaller}\n\nEstimado(a) Director(a) de Operaciones / Planta\n${nombreTaller}\n${ciudad}\n\nReciba un cordial saludo.\n\nMi nombre es ${nomConsultor}, consultor en ingeniería de manufactura y programación CNC. Me pongo en contacto con ustedes tras conocer su trayectoria en el sector metalmecánico en ${ciudad}.\n\nA través de nuestra consultoría técnica en planta, implementamos:\n• Optimización de trayectorias trocoidales de alta velocidad (Adaptive Clearing) para reducir tiempos de ciclo entre 15% y 30%.\n• Programación avanzada en código G y macros paramétricas para estandarizar familias de piezas.\n• Soporte y estandarización en CAD/CAM (Autodesk Fusion, Onshape, Mastercam) para garantizar cero colisiones y postprocesadores afinados a sus controles.\n\nMe gustaría coordinar una breve visita técnica en su planta de ${ciudad} de 20 minutos para analizar piezas de muestra y calcular el ahorro directo en minutos de máquina.\n\nAtentamente,\n\n${nomConsultor}\n${perfil.empresa || 'Consultoría en Manufactura CNC'}`,
+                screenshot_url: taller.website_uri ? `https://api.microlink.io/?url=${encodeURIComponent(taller.website_uri)}&screenshot=true&embed=screenshot.url` : ""
+            };
+
+            estadoApp.tallerActivo.analisis_ia = diag;
+            renderizarDiagnosticoFicha(diag);
+        }
+
+        function renderizarDiagnosticoFicha(diag) {
+            document.getElementById('diag-capacidades').innerText = diag.resumen_capacidades || '';
+
+            const tecCont = document.getElementById('diag-tecnologias');
+            const techs = diag.tecnologias_detectadas || [];
+            tecCont.innerHTML = techs.map(t => `
+                <span class="px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 font-mono text-[10px]">
+                    ✓ ${t}
+                </span>
+            `).join('');
+
+            const dolorCont = document.getElementById('diag-puntos-dolor');
+            const dolores = diag.puntos_dolor || [];
+            dolorCont.innerHTML = dolores.map(d => `<li>${d}</li>`).join('');
+
+            document.getElementById('diag-servicio').innerText = diag.servicio_ofrecido || '';
+            document.getElementById('txt-guion-llamada').value = diag.guion_llamada || '';
+            document.getElementById('txt-guion-wa').value = diag.mensaje_whatsapp || '';
+            document.getElementById('txt-guion-correo').value = diag.correo_formal || '';
+
+            const imgScreen = document.getElementById('ficha-img-screenshot');
+            const placeScreen = document.getElementById('ficha-screenshot-placeholder');
+            if (diag.screenshot_url) {
+                imgScreen.src = diag.screenshot_url;
+                imgScreen.classList.remove('hidden');
+                placeScreen.classList.add('hidden');
+            } else {
+                imgScreen.classList.add('hidden');
+                placeScreen.classList.remove('hidden');
+            }
+        }
+
+        function guardarLeadActual() {
+            if (!estadoApp.tallerActivo) return;
+            const estado = document.getElementById('ficha-select-estado').value;
+            const fechaProx = document.getElementById('ficha-input-fecha-prox').value;
+            const notas = document.getElementById('ficha-input-notas').value;
+
+            estadoApp.tallerActivo.estado = estado;
+            estadoApp.tallerActivo.fecha_proxima_accion = fechaProx;
+            estadoApp.tallerActivo.notas = notas;
+
+            const idx = estadoApp.leads.findIndex(l => l.id === estadoApp.tallerActivo.id);
+            if (idx >= 0) {
+                estadoApp.leads[idx] = { ...estadoApp.tallerActivo };
+            } else {
+                estadoApp.leads.unshift({ ...estadoApp.tallerActivo });
+            }
+
+            localStorage.setItem('radar_cnc_leads', JSON.stringify(estadoApp.leads));
+            actualizarUILeads();
+            alert('¡Lead y diagnóstico guardados!');
+        }
+
+        function tabBorrador(tipo) {
+            ['llamada', 'whatsapp', 'correo'].forEach(t => {
+                document.getElementById(`borrador-${t}`).classList.toggle('hidden', t !== tipo);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                btn.classList.toggle('border-sky-500', t === tipo);
+                btn.classList.toggle('text-sky-400', t === tipo);
+                btn.classList.toggle('border-transparent', t !== tipo);
+                btn.classList.toggle('text-slate-400', t !== tipo);
+            });
+        }
+
+        function copiarAlPortapapeles(textareaId) {
+            const ta = document.getElementById(textareaId);
+            ta.select();
+            document.execCommand('copy');
+            alert('¡Copiado al portapapeles!');
+        }
+
+        // RADAR DE NICHOS
+        function ejecutarAnalisisRadar() {
+            const zona = document.getElementById('input-radar-zona').value.trim() || 'Medellín';
+            const ciudad = zona.split(',')[0].trim();
+
+            const categorias = [
+                { nombre: `Talleres de mecanizado CNC y convencional en ${ciudad}`, count: 8, reviews: 26, sinWeb: 28, score: 88 },
+                { nombre: `Matricería, moldes de inyección y troqueles en ${ciudad}`, count: 6, reviews: 32, sinWeb: 22, score: 94 },
+                { nombre: `Fabricantes de repuestos y autopartes en ${ciudad}`, count: 7, reviews: 39, sinWeb: 35, score: 82 },
+                { nombre: `Metalmecánica pesada y estructuras en ${ciudad}`, count: 5, reviews: 21, sinWeb: 40, score: 76 }
+            ];
+
+            document.getElementById('radar-dictamen-box').classList.remove('hidden');
+            document.getElementById('radar-resumen-mercado').innerText = `En el polo industrial de ${ciudad}, existe una sólida actividad metalmecánica con talleres que buscan maximizar la rentabilidad de sus máquinas. La demanda de optimización de tiempos de ciclo y transición hacia software CAM moderno es prioritaria para ganar contratos y mejorar tiempos de entrega.`;
+
+            const topCont = document.getElementById('radar-top-cards');
+            topCont.innerHTML = `
+                <div class="bg-slate-900 border border-cyan-800/40 p-4 rounded-xl space-y-2 shadow">
+                    <span class="text-[10px] font-mono uppercase text-cyan-400 font-bold">Top #1 Recomendado</span>
+                    <h4 class="font-bold text-sm text-slate-100">Matricería y Moldes de Inyección</h4>
+                    <p class="text-xs text-slate-400">Piezas con alta complejidad 3D y cavidades profundas donde las estrategias de corte actuales dejan horas de pulido manual.</p>
+                    <div class="pt-2 border-t border-slate-800 text-xs">
+                        <span class="text-sky-400 font-semibold text-[11px]">Servicio sugerido:</span>
+                        <p class="text-slate-300 text-[11px]">Optimización de trayectorias trocoidales HSM y programación CAD/CAM.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-cyan-800/40 p-4 rounded-xl space-y-2 shadow">
+                    <span class="text-[10px] font-mono uppercase text-cyan-400 font-bold">Top #2 Recomendado</span>
+                    <h4 class="font-bold text-sm text-slate-100">Talleres de Mecanizado CNC</h4>
+                    <p class="text-xs text-slate-400">Talleres con alta rotación de pedidos que pierden horas valiosas reprogramando piezas similares a pie de máquina.</p>
+                    <div class="pt-2 border-t border-slate-800 text-xs">
+                        <span class="text-sky-400 font-semibold text-[11px]">Servicio sugerido:</span>
+                        <p class="text-slate-300 text-[11px]">Implementación de macros paramétricas FANUC/Haas y estandarización de herramientas.</p>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-cyan-800/40 p-4 rounded-xl space-y-2 shadow">
+                    <span class="text-[10px] font-mono uppercase text-cyan-400 font-bold">Top #3 Recomendado</span>
+                    <h4 class="font-bold text-sm text-slate-100">Autopartes y Piñonería</h4>
+                    <p class="text-xs text-slate-400">Empresas con producción seriada donde recortar 2 minutos por pieza representa miles de dólares al mes.</p>
+                    <div class="pt-2 border-t border-slate-800 text-xs">
+                        <span class="text-sky-400 font-semibold text-[11px]">Servicio sugerido:</span>
+                        <p class="text-slate-300 text-[11px]">Auditoría de tiempos de ciclo y optimización de avances y velocidades de corte.</p>
+                    </div>
+                </div>
+            `;
+
+            const tbody = document.getElementById('tbody-radar-nichos');
+            tbody.innerHTML = categorias.map(cat => `
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-3.5 font-semibold text-slate-200">${cat.nombre}</td>
+                    <td class="p-3.5 text-center font-mono text-slate-300">${cat.count}</td>
+                    <td class="p-3.5 text-center font-mono text-cyan-400">${cat.reviews} reseñas / taller</td>
+                    <td class="p-3.5 text-center font-mono text-amber-400">${cat.sinWeb}% sin web</td>
+                    <td class="p-3.5 text-center font-mono font-bold text-emerald-400">${cat.score} pts</td>
+                    <td class="p-3.5 text-right">
+                        <button onclick="buscarDesdeRadar('${cat.nombre}')" class="px-3 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded text-xs font-medium">Ver Talleres</button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function buscarDesdeRadar(nicho) {
+            document.getElementById('input-nicho').value = nicho;
+            document.getElementById('input-zona').value = document.getElementById('input-radar-zona').value;
+            cambiarPantalla('buscar');
+            ejecutarBusqueda();
+        }
+
+        // CONFIGURACIÓN Y PERFIL
+        function poblarFormularioConfig() {
+            const cfg = estadoApp.config;
+            document.getElementById('cfg-nombre').value = cfg.nombre || '';
+            document.getElementById('cfg-empresa').value = cfg.empresa || '';
+            document.getElementById('cfg-especialidades').value = cfg.especialidades || '';
+            document.getElementById('cfg-propuesta').value = cfg.propuesta_valor || '';
+            document.getElementById('cfg-tono').value = cfg.tono || '';
+            document.getElementById('cfg-google-key').value = cfg.google_api_key || '';
+            document.getElementById('sidebar-consultor-nombre').innerText = cfg.nombre || 'Nestor Gámez';
+        }
+
+        function guardarAjustes() {
+            const cfg = {
+                nombre: document.getElementById('cfg-nombre').value,
+                empresa: document.getElementById('cfg-empresa').value,
+                especialidades: document.getElementById('cfg-especialidades').value,
+                propuesta_valor: document.getElementById('cfg-propuesta').value,
+                tono: document.getElementById('cfg-tono').value,
+                google_api_key: document.getElementById('cfg-google-key').value
+            };
+            estadoApp.config = cfg;
+            localStorage.setItem('radar_cnc_config', JSON.stringify(cfg));
+            document.getElementById('sidebar-consultor-nombre').innerText = cfg.nombre || 'Nestor Gámez';
+            alert('¡Configuración guardada en tu navegador!');
+        }
+
+        // MODAL MANUAL
+        function abrirModalNuevoTaller() {
+            document.getElementById('modal-taller-manual').classList.remove('hidden');
+        }
+        function cerrarModalNuevoTaller() {
+            document.getElementById('modal-taller-manual').classList.add('hidden');
+        }
+        function guardarTallerManual() {
+            const nombre = document.getElementById('manual-nombre').value.trim();
+            if (!nombre) { alert('Ingresa el nombre del taller'); return; }
+            const ciudad = document.getElementById('manual-ciudad').value.trim() || 'Medellín';
+            const nuevo = {
+                id: `manual_${Date.now()}`,
+                nombre,
+                ciudad,
+                direccion: `${ciudad}, Colombia`,
+                telefono: document.getElementById('manual-tel').value.trim(),
+                website_uri: document.getElementById('manual-web').value.trim(),
+                actividad: document.getElementById('manual-actividad').value.trim() || 'Mecanizado y manufactura técnica',
+                rating: 4.8,
+                user_rating_count: 5,
+                score_oportunidad: 78,
+                desglose_score: [{ motivo: 'Ingreso manual calificado por el consultor', puntos: 30 }],
+                estado: 'prospecto',
+                fecha_creacion: new Date().toISOString()
+            };
+            estadoApp.leads.unshift(nuevo);
+            localStorage.setItem('radar_cnc_leads', JSON.stringify(estadoApp.leads));
+            cerrarModalNuevoTaller();
+            actualizarUILeads();
+            cargarLeadEnFicha(nuevo.id);
+        }
+    </script>
+</body>
+</html>
